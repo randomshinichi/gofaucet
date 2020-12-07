@@ -78,7 +78,7 @@ func HttpRunStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func RunSendTx(fc *FaucetConfig, destAddr, amount string) (output string, err error) {
-	cliOptions := fmt.Sprintf("--home %s --keyring-backend test --chain-id %s --node tcp://%s -o json", fc.CliConfigPath, fc.ChainID, fc.NodeAddr)
+	cliOptions := fmt.Sprintf("--home /payload/config/faucet_account --keyring-backend test --chain-id %s --node tcp://%s -o json", fc.ChainID, fc.NodeAddr)
 	cliSend := fmt.Sprintf("%s tx send %s %s %s %s --yes", fc.CliBinaryPath, fc.FaucetAddr, destAddr, amount, cliOptions)
 	return RunCommand(cliSend)
 }
