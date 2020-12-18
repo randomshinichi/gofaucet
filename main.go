@@ -40,6 +40,7 @@ func main() {
 	rootCmd.Execute()
 }
 
+// LoadFaucetConfig loads FaucetConfig from a .yaml file
 func LoadFaucetConfig(filename string) (fc *FaucetConfig, err error) {
 	f, err := ioutil.ReadFile(filename)
 	if err != nil {
@@ -53,6 +54,7 @@ func LoadFaucetConfig(filename string) (fc *FaucetConfig, err error) {
 	return
 }
 
+// RunCommand is a general purpose CLI program running function
 func RunCommand(c string) (output string, err error) {
 	csplit := strings.Split(c, " ")
 	log.Println("RunCommand", c)
@@ -61,11 +63,13 @@ func RunCommand(c string) (output string, err error) {
 	return
 }
 
+// RunStatus runs launchpayloadcli status --node tcp://.... -o json
 func RunStatus(fc *FaucetConfig) (output string, err error) {
 	c := fmt.Sprintf("%s status --node tcp://%s -o json", fc.CliBinaryPath, fc.NodeAddr)
 	return RunCommand(c)
 }
 
+// HttpRunStatus is a HTTP wrapper function around RunStatus
 func HttpRunStatus(w http.ResponseWriter, r *http.Request) {
 	o, err := RunStatus(faucetConfig)
 	if err != nil {
@@ -77,12 +81,14 @@ func HttpRunStatus(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(o))
 }
 
+// RunSendTx runs launchpayloadcli tx send FROM_ADDR DEST_ADDR AMOUNT
 func RunSendTx(fc *FaucetConfig, destAddr, amount string) (output string, err error) {
 	cliOptions := fmt.Sprintf("--home /payload/config/faucet_account --keyring-backend test --chain-id %s --node tcp://%s -o json", fc.ChainID, fc.NodeAddr)
 	cliSend := fmt.Sprintf("%s tx send %s %s %s %s --yes", fc.CliBinaryPath, fc.FaucetAddr, destAddr, amount, cliOptions)
 	return RunCommand(cliSend)
 }
 
+// HttpRunSendTx is a http wrapper function around RunSendTx that uses a token for authentication
 func HttpRunSendTx(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	destAddr := params["destAddr"]
