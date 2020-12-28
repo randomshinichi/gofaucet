@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -14,6 +15,10 @@ import (
 )
 
 var faucetConfig *FaucetConfig
+var configOutputPath string
+
+const cliBinaryPath = "/payload/launchpayloadcli"
+const cliConfigPath = "/home/docker/nodeconfig/faucet_account"
 
 type FaucetConfig struct {
 	ListenAddr    string `yaml:"listen_addr"`
@@ -37,6 +42,20 @@ func main() {
 		Args:  cobra.ExactArgs(1),
 		RunE:  startFaucet,
 	}
+
+	var genCfgCmd = &cobra.Command{
+		Use:   "generate-config EVENT_ID FAUCET_ADDR TOKEN_SYMBOL NODE_IP",
+		Short: "Generate a configuration file from the arguments",
+		Args:  cobra.ExactArgs(4),
+		RunE:  generateConfig,
+	}
+
+	pwd, err := filepath.Abs(".")
+	if err != nil {
+		return
+	}
+	genCfgCmd.Flags().StringVarP(&configOutputPath, "output", "o", filepath.Join(pwd, "faucetconfig.yml"), "filename to write the config to")
+	rootCmd.AddCommand(genCfgCmd)
 	rootCmd.Execute()
 }
 
@@ -129,4 +148,30 @@ func startFaucet(c *cobra.Command, args []string) (err error) {
 	log.Fatal(http.ListenAndServe(fc.ListenAddr, router))
 
 	return nil
+}
+
+func generateConfig(c *cobra.Command, args []string) (err error) {
+	evtID := args[0]
+	faucetAddr := args[1]
+	tokenSymbol := args[2]
+	nodeIP := args[3]
+
+	fc := FaucetConfig{
+		ListenAddr:    "0.0.0.0:8000",
+		ChainID:       evtID,
+		CliBinaryPath: cliBinaryPath,
+		CliConfigPath: cliConfigPath,
+		FaucetAddr:    faucetAddr,
+		Unit:          tokenSymbol,
+		NodeAddr:      fmt.Sprintf("%s:26657", nodeIP),
+		Secret:        "abadjoke",
+	}
+
+	fBytes, err := yaml.Marshal(fc)
+	if err != nil {
+		return
+	}
+	fmt.Println("Writing to", configOutputPath)
+	err = ioutil.WriteFile(configOutputPath, fBytes, 0644)
+	return
 }
