@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -56,7 +57,10 @@ func main() {
 	}
 	genCfgCmd.Flags().StringVarP(&configOutputPath, "output", "o", filepath.Join(pwd, "faucetconfig.yml"), "filename to write the config to")
 	rootCmd.AddCommand(genCfgCmd)
-	rootCmd.Execute()
+	err = rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
 // LoadFaucetConfig loads FaucetConfig from a .yaml file
