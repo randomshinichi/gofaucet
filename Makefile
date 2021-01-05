@@ -18,7 +18,7 @@ build: build-dist
 
 build-dist: $(GOFILES)
 	@echo build binary to $(OUTPUTFOLDER)
-	GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static" -X main.Version=$(GIT_DESCR)' -o $(OUTPUTFOLDER)/gofaucet .
+	GOOS=$(OS) GOARCH=$(ARCH) CGO_ENABLED=0 go build -ldflags '-s -w -extldflags "-static" -X main.Version=$(GIT_DESCR)' -o $(OUTPUTFOLDER)/faucet .
 	@echo done
 
 install: build
